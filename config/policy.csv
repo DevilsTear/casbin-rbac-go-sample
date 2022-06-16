@@ -1,2 +1,4 @@
 p, admin, /*, GET
+p, kataras, /*, GET
+p, makis, /*, GET
 p, notadmin, /, POST

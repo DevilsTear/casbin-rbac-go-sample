@@ -10,6 +10,13 @@ import (
 // $ go get github.com/casbin/casbin/v2@v2.17.0
 // $ go run main.go
 
+// The struct value MUST contain a Username and Passwords fields
+// or GetUsername() string and GetPassword() string methods.
+type User struct {
+	Username string
+	Password string
+}
+
 func newApp() *iris.Application {
 	app := iris.New()
 
@@ -32,39 +39,38 @@ func newApp() *iris.Application {
 				ctx.Next()
 			}
 	*/
-	users := map[string]string{
-		"admin":    "adminpass",
-		"notadmin": "notadminpass",
-	}
-	app.UseRouter(basicauth.Default(users))
+	app.UseRouter(basicauth.Load("data/users.yml", basicauth.BCRYPT))
 
 	// Note that by registering with UseRouter instead of Use,
-	// and becauese the middleware stops the execution with 403 (Forbidden) by default,
+	// and because the middleware stops the execution with 403 (Forbidden) by default,
 	// if the authentication and roles match failed,
 	// unregistered route paths will fire 403 instead of 404 (Not Found).
 	app.UseRouter(casbinMiddleware.ServeHTTP)
 
-	app.Get("/", hi)
+	app.Get("/", hi) // p, admin, /*, GET && p, notadmin, /, POST
 
-	app.Any("/dataset1/{p:path}", hi) // p, dataset1_admin, /dataset1/*, * && p, alice, /dataset1/*, GET
+	app.Any("/admin/{p:path}", hi) // p, admin, /*, GET && p, notadmin, /, POST
 
-	app.Post("/dataset1/resource1", hi)
+	app.Post("/admin/resource1", hi)
 
-	app.Get("/dataset2/resource2", hi)
-	app.Post("/dataset2/folder1/{p:path}", hi)
+	app.Get("/admin/resource2", hi)
+	app.Post("/admin/folder1/{p:path}", hi)
 
-	app.Any("/dataset2/resource1", hi)
+	app.Any("/admin/resource1", hi)
 
 	return app
 }
 
 func main() {
 	app := newApp()
+	// kataras:kataras_pass
+	// makis:makis_pass
 	app.Listen(":8080")
 }
 
 func hi(ctx iris.Context) {
-	ctx.Writef("Hello %s", casbin.Subject(ctx))
+	_, password, _ := ctx.Request().BasicAuth()
+	ctx.Writef("%s - Hello %s:%s", ctx.Path(), casbin.Subject(ctx), password)
 	// Note that, by default, the username is extracted by ctx.User().GetUsername()
 	// to change that behavior modify the `casbin.SubjectExtractor` or
 	// use the `casbin.SetSubject` to set a custom subject for the current request

@@ -1,0 +1,8 @@
+- username: kataras
+  password: $2a$10$Irg8k8HWkDlvL0YDBKLCYee6j6zzIFTplJcvZYKA.B8/clHPZn2Ey
+  # encrypted of kataras_pass
+  role: admin
+- username: makis
+  password: $2a$10$3GXzp3J5GhHThGisbpvpZuftbmzPivDMo94XPnkTnDe7254x7sJ3O
+  # encrypted of makis_pass
+  role: nonadmin
